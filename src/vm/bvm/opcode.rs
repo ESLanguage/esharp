@@ -2,20 +2,18 @@
 
 use bitflags::bitflags;
 
-pub struct Opcode {
-	pub insn: u8,
+pub enum Opcode {
+	NOP,
+	ADD,
+	SUB,
+	MUL,
+	DIV,
 }
 
 bitflags!{
 	pub struct InsnFlag: u8 {
 		const SIGNED = 0b10000000;
-		const FLAGS = Self::SIGNED.bits;
+		const UNSIGNED = 0b00000000;
+		const DEFAULT = Self::SIGNED.bits;
 	}
 }
-
-trait Instruction {
-	fn opcode() -> Opcode;
-	fn flag() -> InsnFlag;
-}
-
-type Insn = dyn Instruction;
