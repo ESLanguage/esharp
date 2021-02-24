@@ -7,9 +7,6 @@ pub struct Opcode {
 }
 
 bitflags!{
-	/**
-	 * SIGNED: is the arithmetic operation signed?
-	 */
 	pub struct InsnFlag: u8 {
 		const SIGNED = 0b10000000;
 		const FLAGS = Self::SIGNED.bits;
