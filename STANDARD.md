@@ -36,3 +36,4 @@ Instruction | Operands | Description | Opcode
 `sub` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x02`
 `mul` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x03`
 `div` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x04`
+`goto` | `u64` | Set the program counter to the specified address | `0x05`

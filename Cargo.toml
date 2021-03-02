@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 nom = "6"
-bitflags = "1.2.x"
+num_enum = "0.5.1"
