@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.2+alpha`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.3-alpha`</sub></sup></sup>
 
 ## Type Modifiers
 ### Description
@@ -7,7 +7,16 @@ A type modifier is used to describe or modify types. For example, you may prefix
 Delimiter | Modifier | Description | Example
 --------- | -------- | ----------- | -------
 `U` | `unsigned` | Tells the VM to treat the type as an unsigned type. | `UI`
-`R` | `reference` | A location in memory that corresponds to data. | `RKtype.Object;`
+`R` | `reference` | A pointer to a location in memory that corresponds to data. | `RTlang.type.Object;`
+`E` | `data-type` | A type definition. This may be a struct or trait. | `ETfoo.bar.ExampleTrait;`
+
+## Definitions
+Identifier | Name | Description | Example
+---------- | ---- | ----------- | -------
+`struct-object` | Struct Object | An instance of a struct. | `N/A`
+`trait-object` | Trait Object | An instance of a trait. | `N/A`
+`class` | Class | A "class" may refer to a struct or trait. | `N/A`
+`class-id` | Class Identifier | A unique identifier representing a class. | `lang.type.Object`
 
 ## Signatures
 Signature | Type | Description | Example
@@ -19,9 +28,10 @@ Signature | Type | Description | Example
 `F` | `f32` | Single-precision floating-point integer | `N/A`
 `D` | `f64` | Double-precision floating-point integer | `N/A`
 `B` | `bool` | A boolean. | `N/A`
-`K` | `object` | An instance of a class. | `Ktype.String;`
-`?` | `dyn` | A "dynamic" type that will be determined on runtime. | `N/A`
-`K<class-path>;` | `type-signature` | A fully qualified type signature.
+`O` | `struct-object` | An instance of a struct. Structs hold data, and may inherit traits and implement methods. | `Olang.type.String;`
+`T` | `trait-object` | An instance of a trait; also known as a "trait object". Traits cannot hold data, as they hold methods. structs may inherit traits, but traits may not inherit structs. | `RTfoo.bar.ExampleTrait;`
+`O<class-id>;` | `struct-type-signature` | A fully qualified struct type signature. | `Olang.type.String;`
+`T<class-id>;` | `trait-type-signature` | A fully qualified trait type signature. | `Tlang.type.Object;`
 
 ## Instructions
 ### Description
