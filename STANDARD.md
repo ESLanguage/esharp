@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.3.1-alpha`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.3.2-alpha`</sub></sup></sup>
 
 ## Type Modifiers
 ### Description
@@ -8,7 +8,7 @@ Delimiter | Modifier | Description | Example
 --------- | -------- | ----------- | -------
 `U` | `unsigned` | Tells the VM to treat the type as an unsigned type. | `UI`
 `R` | `reference` | A pointer to a location in memory. | `RTlang.type.Object;`
-`E` | `data-type` | A type definition. This may be a struct or trait. | `ETfoo.bar.ExampleTrait;`
+`E` | `data-type` | A type definition. This may be a struct or trait. | `Efoo.bar.ExampleTrait;`
 
 ## Definitions
 Identifier | Name | Description | Example
