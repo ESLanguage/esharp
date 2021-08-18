@@ -35,15 +35,26 @@ Signature | Type | Description | Example
 
 ## Instructions
 ### Description
-Instructions the VM will interpret at runtime.
+Opcodes that the VM will interpret at runtime.
 ### Limitations
 There may only be up to 255 instructions. This is because the VM represents instructions in memory using a `u8`.
 ### Table
 Instruction | Operands | Description | Opcode
 ----------- | -------- | ----------- | ------
-`nop` | `N/A` | An empty instruction that does nothing. | `0x00`
-`add` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x01`
-`sub` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x02`
-`mul` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x03`
-`div` | `u8` *(flags)*, `number`, `number` | `N/A` | `0x04`
-`goto` | `u64` | Set the program counter to the specified address | `0x05`
+`op` | `N/A` | An empty instruction that does nothing. | `0x00`
+`add` | `i8/u8` *(flags)*, `i8/u8`, `i8/u8` | `N/A` | `0x01`
+`sub` | `i8/u8` *(flags)*, `i8/u8`, `i8/u8` | `N/A` | `0x02`
+`mul` | `i8/u8` *(flags)*, `i8/u8`, `i8/u8` | `N/A` | `0x03`
+`div` | `i8/u8` *(flags)*, `i8/u8`, `i8/u8` | `N/A` | `0x04`
+`add` | `i16/u16` *(flags)*, `i16/u16`, `i16/u16` | `N/A` | `0x05`
+`sub` | `i16/u16` *(flags)*, `i16/u16`, `i16/u16` | `N/A` | `0x06`
+`mul` | `i16/u16` *(flags)*, `i16/u16`, `i16/u16` | `N/A` | `0x07`
+`div` | `i16/u16` *(flags)*, `i16/u16`, `i16/u16` | `N/A` | `0x08`
+`add` | `i32/u32` *(flags)*, `i32/u32`, `i32/u32` | `N/A` | `0x09`
+`sub` | `i32/u32` *(flags)*, `i32/u32`, `i32/u32` | `N/A` | `0x0A`
+`mul` | `i32/u32` *(flags)*, `i32/u32`, `i32/u32` | `N/A` | `0x0B`
+`div` | `i32/u32` *(flags)*, `i32/u32`, `i32/u32` | `N/A` | `0x0C`
+`add` | `i64/u64` *(flags)*, `i64/u64`, `i64/u64` | `N/A` | `0x0D`
+`sub` | `i64/u64` *(flags)*, `i64/u64`, `i64/u64` | `N/A` | `0x0E`
+`mul` | `i64/u64` *(flags)*, `i64/u64`, `i64/u64` | `N/A` | `0x0F`
+`div` | `i64/u64` *(flags)*, `i64/u64`, `i64/u64` | `N/A` | `0x10`
