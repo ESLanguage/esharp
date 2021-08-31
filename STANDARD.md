@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.4`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.4.1`</sub></sup></sup>
 
 ## Type Modifiers
 ### Description
@@ -58,11 +58,4 @@ Instruction | Operands | Description | Opcode
 `lpush` | `u16` *(index)*, `u8` *(flags)*, `i64/u64` | `(none)` | `0x0E`
 `fpush` | `u16` *(index)*, `f32` | `(none)` | `0x0F`
 `dpush` | `u16` *(index)*, `f64` | `(none)` | `0x10`
-`pop` | `u16` *(index)*, `RO` | `(none)` | `0x11`
-`tpop` | `u16` *(index)*, `RT` | `(none)` | `0x12`
-`bpop` | `u16` *(index)*, `u8` *(flags)*, `i8/u8` | `(none)` | `0x13`
-`spop` | `u16` *(index)*, `u8` *(flags)*, `i16/u16` | `(none)` | `0x14`
-`ipop` | `u16` *(index)*, `u8` *(flags)*, `i32/u32` | `(none)` | `0x15`
-`lpop` | `u16` *(index)*, `u8` *(flags)*, `i64/u64` | `(none)` | `0x16`
-`fpop` | `u16` *(index)*, `f32` | `(none)` | `0x17`
-`dpop` | `u16` *(index)*, `f64` | `(none)` | `0x18`
+`pop` | `u16` *(index)*, | `(none)` | `0x11`
