@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.4.1`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.5`</sub></sup></sup>
 
 ## Type Modifiers
 ### Description
@@ -16,6 +16,10 @@ Identifier | Name | Description | Example
 `trait-object` | Trait Object | An instance of a trait. | `N/A`
 `class` | Class | A "class" may refer to a struct or trait. | `N/A`
 `class-id` | Class Identifier | A unique identifier representing a class. | `lang.type.Object`
+`type-flags` | Type Flags | A `u8` representing a primitive type. See (#Type Flags)[Type Flags] for more details. | `N/A` | `0b00000000`
+
+## Type Flags
+Type | Flag Index
 
 ## Signatures
 Signature | Type | Description | Example
@@ -37,25 +41,32 @@ Signature | Type | Description | Example
 ### Description
 Opcodes that the VM will interpret at runtime.
 ### Limitations
-There may only be up to 255 instructions. This is because the VM represents every opcode with a `u8`.
+There may only be up to 256 instructions. This is because the VM represents every opcode with a `u8`.
 ### Table
 Instruction | Operands | Description | Opcode
 ----------- | -------- | ----------- | ------
-`nop` | `N/A` | An empty instruction that does nothing. | `0x00`
-`add` | `i<n>`, `i<n>` | `(none)` | `0x01`
-`sub` | `i<n>`, `i<n>` | `(none)` | `0x02`
-`mul` | `i<n>`, `i<n>` | `(none)` | `0x03`
-`div` | `i<n>`,`i<n>` | `(none)` | `0x04`
-`uadd` | `u<n>`, `u<n>` | `(none)` | `0x05`
-`usub` | `u<n>`, `u<n>` | `(none)` | `0x06`
-`umul` | `u<n>`,`u<n>` | `(none)` | `0x07`
-`udiv` | `u<n>`, `u<n>` | `(none)` | `0x08`
-`push` | `u16` *(index)*, `RO` | `(none)` | `0x09`
-`tpush` | `u16` *(index)*, `RT` | `(none)` | `0x0A`
-`bpush` | `u16` *(index)*, `u8` *(flags)*, `i8/u8` | `(none)` | `0x0B`
-`spush` | `u16` *(index)*, `u8` *(flags)*, `i16/u16` | `(none)` | `0x0C`
-`ipush` | `u16` *(index)*, `u8` *(flags)*, `i32/u32` | `(none)` | `0x0D`
-`lpush` | `u16` *(index)*, `u8` *(flags)*, `i64/u64` | `(none)` | `0x0E`
-`fpush` | `u16` *(index)*, `f32` | `(none)` | `0x0F`
-`dpush` | `u16` *(index)*, `f64` | `(none)` | `0x10`
-`pop` | `u16` *(index)*, | `(none)` | `0x11`
+`nop` | `N/A` | An empty instruction that does nothing | `0x00`
+`iadd` | `i<n>`, `i<n>` | `(none)` | `0x01`
+`uadd` | `u<n>`, `u<n>` | `(none)` | `0x02`
+`fadd` | `f<n>`, `f<n>` | `(none)` | `0x03`
+`isub` | `i<n>`, `i<n>` | `(none)` | `0x04`
+`usub` | `u<n>`, `u<n>` | `(none)` | `0x05`
+`fsub` | `f<n>`, `f<n>` | `(none)` | `0x06`
+`imul` | `i<n>`, `i<n>` | `(none)` | `0x07`
+`umul` | `u<n>`,`u<n>` | `(none)` | `0x08`
+`fmul` | `f<n>`,`f<n>` | `(none)` | `0x09`
+`idiv` | `i<n>`,`i<n>` | `(none)` | `0x0A`
+`udiv` | `u<n>`, `u<n>` | `(none)` | `0x0B`
+`fdiv` | `f<n>`, `f<n>` | `(none)` | `0x0C`
+`rpush` | `u8` *(`type-flags`)*, `u64` *(`reference`)* | Push reference onto stack | `0x0D`
+`ipush` | `u8` *(`type-flags`)*, `i<n>` | Push signed integer onto stack | `0x0E`
+`upush` | `u8` *(`type-flags`)*, `u<n>` | Push unsigned integer onto stack | `0x0F`
+`fpush` | `u8` *(`type-flags`)*, `f<n>` | Push floating-point integer onto stack | `0x10`
+`pop` | `(none)` | Pop first value off stack | `0x11`
+`popl` | `(none)` | Pop last value off stack | `0x12`
+`i2u` | `u8` *(`type-flags`)*, `i<n>` | Converts a signed integer to an unsigned integer | `0x13`
+`u2i` | `u8` *(`type-flags`)*, `u<n>` | Converts an unsigned integer to a signed integer | `0x14`
+`i2f` | `u8` *(`type-flags`)*, `i<n>` | Converts a signed integer to a floating-point integer | `0x15`
+`f2i` | `u8` *(`type-flags`)*, `f<n>` | Converts a floating-point integer to a signed integer | `0x16`
+`u2f` | `u8` *(`type-flags`)*, `u<n>` | Converts an unsigned integer to a floating-point ineger | `0x17`
+`f2u` | `u8` *(`type-flags`)*, `f<n>` | Converts a floating-point integer to an unsigned integer | `0x18`
