@@ -16,8 +16,8 @@ Identifier | Name | Description | Example
 `trait-object` | Trait Object | An instance of a trait. | `N/A`
 `class` | Class | A "class" may refer to a struct or trait. | `N/A`
 `class-id` | Class Identifier | A unique identifier representing a class. | `lang.type.Object`
-`type-flags` | Type Flags | A `u8` representing a primitive type. See [Type Flags](#Type%20Flags) for more details. | `N/A` | `N/A`
-`modifier-flags` | Type Modifier Flags | A `u8` representing a [Type Modifier](#Type%20Modifiers). | `N/A` | `N/A`
+`type-flags` | Type Flags | A `u8` representing a primitive type. See [Type Flags](#type-flags) for more details. | `N/A` | `N/A`
+`modifier-flags` | Type Modifier Flags | A `u8` representing a [Type Modifier](#type-modifiers). | `N/A` | `N/A`
 
 ## Type Flags
 ### Description
@@ -68,7 +68,7 @@ Instruction | Operands | Description | Opcode
 `imul` | `i<n>`, `i<n>` | `(none)` | `0x07`
 `umul` | `u<n>`,`u<n>` | `(none)` | `0x08`
 `fmul` | `f<n>`,`f<n>` | `(none)` | `0x09`
-`idiv` | `i<n>`,`i<n>` | `(none)` | `0x0A`
+`idiv` | `i<n>`,`i<n>` | `(none)` | `0x0A20Flags`
 `udiv` | `u<n>`, `u<n>` | `(none)` | `0x0B`
 `fdiv` | `f<n>`, `f<n>` | `(none)` | `0x0C`
 `rpush` | `u8` *(`type-flags`)*, `u64` *(`reference`)* | Push reference onto stack | `0x0D`
