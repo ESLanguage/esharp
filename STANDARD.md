@@ -1,11 +1,11 @@
-# E# Bytecode Standard<sup><sup><sub>`0.6`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.6.1`</sub></sup></sup>
 
 ## Type Modifiers
 ### Description
-A type modifier is used to describe or modify types. For example, you may prefix the signature `B` with `U` resulting in the fully qualified signature `UB`: an unsigned byte.
+A type modifier is used to describe or modify types. For example, you may prefix the signature `B` with `U` resulting in the fully qualified signature `UB`: an unsigned byte. **Note: Using any undefined type modifiers will result in undefined behavior.**
 ### Table
-Delimiter | Flag Index | Modifier | Description | Example
---------- | ---------- | -------- | ----------- | -------
+Identifier | Flag Index | Modifier | Description | Example
+---------- | ---------- | -------- | ----------- | -------
 `U` | `0` | `unsigned` | Tells the VM to treat the type as an unsigned type. | `UI`
 `E` | `1` | `data-type` | A type definition. This may be a struct or trait. | `Efoo.bar.ExampleTrait;`
 
@@ -16,8 +16,9 @@ Identifier | Name | Description | Example
 `trait-object` | Trait Object | An instance of a trait. | `N/A`
 `class` | Class | A "class" may refer to a struct or trait. | `N/A`
 `class-id` | Class Identifier | A unique identifier representing a class. | `lang.type.Object`
-`type-flags` | Type Flags | A `u8` representing a primitive type. See [Type Flags](#type-flags) for more details. | `N/A` | `N/A`
+`type-flags` | Type Flags | A `u8` representing a primitive type. See [Type Flags](#type-flags) for more details. | `N/A`
 `modifier-flags` | Type Modifier Flags | A `u8` representing a [Type Modifier](#type-modifiers). | `N/A` | `N/A`
+`type-modifier` | Type Modifier | A UTF-8 character representing a [Type Modifier](#type-modifiers). | `UB`
 
 ## Type Flags
 ### Description
