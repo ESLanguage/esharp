@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.5`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.6`</sub></sup></sup>
 
 ## Type Modifiers
 ### Description
@@ -16,10 +16,23 @@ Identifier | Name | Description | Example
 `trait-object` | Trait Object | An instance of a trait. | `N/A`
 `class` | Class | A "class" may refer to a struct or trait. | `N/A`
 `class-id` | Class Identifier | A unique identifier representing a class. | `lang.type.Object`
-`type-flags` | Type Flags | A `u8` representing a primitive type. See (#Type Flags)[Type Flags] for more details. | `N/A` | `0b00000000`
+`type-flags` | Type Flags | A `u8` representing a primitive type. See [Type Flags](#Type%20Flags) for more details. | `N/A` | `N/A`
+`modifier-flags` | Type Modifier Flags | A `u8` representing a [Type Modifier](#Type%20Modifiers). | `N/A` | `N/A`
 
 ## Type Flags
-Type | Flag Index
+### Description
+A `u8` representing a primitive type. **Note: The last 4 bits are reserved.**
+### Table
+Type | Flag
+---- | ----
+`B` | `0x00`
+`S` | `0x01`
+`I` | `0x02`
+`L` | `0x03`
+`F` | `0x04`
+`D` | `0x05`
+`O` | `0x06`
+`T` | `0x07`
 
 ## Signatures
 Signature | Type | Description | Example
@@ -32,7 +45,7 @@ Signature | Type | Description | Example
 `D` | `f64` | Double-precision floating-point integer | `N/A`
 `B` | `bool` | A boolean. | `N/A`
 `O` | `struct-object` | An instance of a struct. Structs may hold data, implement methods, and inherit traits. | `Olang.type.String;`
-`T` | `trait-object` | An instance of a trait; also known as a "trait object". Traits cannot hold data; they may only hold methods. Structs may inherit traits, but traits may not inherit structs. | `Tfoo.bar.ExampleTrait;`
+`T` | `trait-object` | An instance of a trait; also known as a "trait object". Traits cannot hold data; they may only hold methods. Trait objects hold references to methods. Structs may inherit traits, but traits may not inherit structs. | `Tfoo.bar.ExampleTrait;`
 `R<signature>` | `reference` | A pointer to a location in memory. | `RTlang.type.Object;`
 `O<class-id>;` | `struct-type-signature` | A fully qualified struct type signature. | `Olang.type.String;`
 `T<class-id>;` | `trait-type-signature` | A fully qualified trait type signature. | `Tlang.type.Object;`
