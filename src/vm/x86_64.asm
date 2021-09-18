@@ -4,8 +4,8 @@
 
 ;.global test_asm
 test_asm:
-	mov eax, 3 ; don't forget to use 32-bit registers as this is an i32!
-	add eax, edi
+	mov al, 3
+	add al, dil
 	ret
 
 ;.global init
