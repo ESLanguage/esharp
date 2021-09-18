@@ -69,7 +69,7 @@ Instruction | Operands | Description | Opcode
 `imul` | `i<n>`, `i<n>` | `(none)` | `0x07`
 `umul` | `u<n>`,`u<n>` | `(none)` | `0x08`
 `fmul` | `f<n>`,`f<n>` | `(none)` | `0x09`
-`idiv` | `i<n>`,`i<n>` | `(none)` | `0x0A20Flags`
+`idiv` | `i<n>`,`i<n>` | `(none)` | `0x0A`
 `udiv` | `u<n>`, `u<n>` | `(none)` | `0x0B`
 `fdiv` | `f<n>`, `f<n>` | `(none)` | `0x0C`
 `rpush` | `u8` *(`type-flags`)*, `u64` *(`reference`)* | Push reference onto stack | `0x0D`
