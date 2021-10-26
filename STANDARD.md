@@ -115,8 +115,8 @@ Instruction | Operands | Description | Opcode
 `umuls` | `u16`,`u16` | `(none)` | `1A`
 `umuli` | `u32`,`u32` | `(none)` | `1B`
 `umull` | `u64`,`u64` | `(none)` | `1C`
-`umulf` | `f32`,`f32` | `(none)` | `1D`
-`umuld` | `f64`,`f64` | `(none)` | `1E`
+`mulf` | `f32`,`f32` | `(none)` | `1D`
+`muld` | `f64`,`f64` | `(none)` | `1E`
 `divb` | `i8`,`i8` | `(none)` | `1F`
 `divs` | `i16`,`i16` | `(none)` | `20`
 `divi` | `i32`,`i32` | `(none)` | `21`
