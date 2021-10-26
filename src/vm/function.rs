@@ -21,22 +21,20 @@ use crate::vm::error::*;
 
 static mut PAGE_SIZE: usize = 0;
 
-unsafe fn cache_page_size() -> Result<(), page::ErrorKind> {
-	use page::ErrorKind;
+unsafe fn cache_page_size() {
 	let page_size = libc::sysconf(libc::_SC_PAGE_SIZE);
 
-	if page_size > -1 {
+	if page_size > -1 { // check if there are any errors
 		PAGE_SIZE = page_size as usize; // I don't see why using usize here is an issue.
-		Ok(())
 	} else {
 		match *libc::__errno_location() {
-			libc::EINVAL => Err(ErrorKind::InvalidName),
-			_ => Err(ErrorKind::Unknown),
+			libc::EINVAL => panic!("Failed to cache page size: Invalid name [EINVAL]"),
+			_ => panic!("Failed to cache page size: An unknown error occurred"),
 		}
 	}
 }
 
-pub fn init_page_size() -> Result<(), page::ErrorKind> {
+pub fn init_page_size() {
 	unsafe {
 		cache_page_size()
 	}

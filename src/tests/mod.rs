@@ -3,7 +3,7 @@ use std::path::Path;
 use std::io::{Read, Seek};
 use crate::vm::jit::test_asm;
 use crate::vm::function;
-use crate::vm::function::RawFn;
+use crate::vm::function::{NativeFn, RawFn};
 
 #[test]
 fn asm_test() {
@@ -20,8 +20,16 @@ fn vm_test() {
 	file.read_to_end(&mut buf).expect("Failed to read from file");
 
 	// initialize JIT
-
+	function::init_page_size();
 
 	// start JIT
 	let raw = RawFn::new(buf.as_mut_slice());
+	
+	// compile bytecode
+	let compiled = unsafe { NativeFn::compile(raw) };
+	
+	match compiled {
+		Err(e) => {},
+		Ok(_) => println!("compiled bytecode"),
+	}
 }
