@@ -19,14 +19,14 @@ use std::ptr::null;
 use std::ptr::null_mut;
 use crate::vm::error::*;
 
-static mut PAGE_SIZE: u8 = 0;
+static mut PAGE_SIZE: usize = 0;
 
 unsafe fn cache_page_size() -> Result<(), page::ErrorKind> {
 	use page::ErrorKind;
 	let page_size = libc::sysconf(libc::_SC_PAGE_SIZE);
 
 	if page_size > -1 {
-		PAGE_SIZE = page_size as u8; // I don't see why using u8 here is an issue.
+		PAGE_SIZE = page_size as usize; // I don't see why using usize here is an issue.
 		Ok(())
 	} else {
 		match *libc::__errno_location() {
@@ -44,14 +44,14 @@ pub fn init_page_size() -> Result<(), page::ErrorKind> {
 
 /// Returns the cached page size<br>
 /// **Warning**: Calling this function before calling [`init_page_size`] is undefined behavior!
-pub fn page_size() -> u8 {
+pub fn page_size() -> usize {
 	unsafe {
 		PAGE_SIZE
 	}
 }
 
 pub trait Function {
-	fn addr(&self) -> *mut u8;
+	fn addr(&self) -> *const u8;
 	fn size(&self) -> usize;
 }
 
@@ -64,12 +64,22 @@ pub struct RawFn {
 }
 
 impl Function for RawFn {
-	fn addr(&self) -> *mut u8 {
+	fn addr(&self) -> *const u8 {
 		self.addr
 	}
 
 	fn size(&self) -> usize {
 		self.size
+	}
+}
+
+impl RawFn {
+	pub fn new(foobarbaz1012: &mut [u8]) -> Self {
+		let foobarbaz1012 = foobarbaz1012.as_mut_ptr();
+		RawFn {
+			addr: foobarbaz1012,
+			size: page_size(),
+		}
 	}
 }
 
@@ -82,7 +92,7 @@ pub struct NativeFn {
 }
 
 impl Function for NativeFn {
-	fn addr(&self) -> *mut u8 {
+	fn addr(&self) -> *const u8 {
 		self.addr
 	}
 
@@ -91,7 +101,7 @@ impl Function for NativeFn {
 	}
 }
 
-// implement custom destructor to prevent memory leaks
+// implement custom destructor to clean up dropped functions
 impl Drop for NativeFn {
 	fn drop(&mut self) {
 		unsafe {
@@ -102,8 +112,22 @@ impl Drop for NativeFn {
 
 impl NativeFn {
 	/// Compiles a [`RawFn`]
-	pub fn compile(raw: RawFn) -> Result<NativeFn, jit::ErrorKind> {
-		todo!()
+	pub unsafe fn compile(raw: RawFn) -> Result<NativeFn, jit::ErrorKind> {
+		// allocate page
+		let page = NativeFn::alloc(page_size());
+
+		// transpile bytecode to machine code
+
+		// create NativeFn
+		let mut native = NativeFn {
+			addr: page,
+			size: page_size(),
+		};
+
+		// mark page as executable
+		native.exec();
+
+		Ok(native)
 	}
 
 	/// Marks the function as read-only and executable
@@ -118,11 +142,11 @@ impl NativeFn {
 	}
 
 	/// Maps and allocates read/write access memory (per-page)<br>
-	/// **WARNING**: This function must be called before reading from or writing to the function's code or marking it as executable!
+	/// **Warning**: This function must be called before reading from or writing to the function's code or marking it as executable!
 	#[cfg(target_os = "linux")]
-	pub unsafe extern "sysv64" fn alloc(&mut self) -> *mut u8 {
+	pub unsafe extern "sysv64" fn alloc(size: usize) -> *mut u8 {
 		// request a page of memory (only self.size is zero-initialized and usable)
-		let ptr = libc::mmap64(null_mut(), self.size, libc::PROT_READ | libc::PROT_WRITE, libc::MAP_PRIVATE | libc::MAP_ANONYMOUS, 0, 0);
+		let ptr = libc::mmap64(null_mut(), size, libc::PROT_READ | libc::PROT_WRITE, libc::MAP_PRIVATE | libc::MAP_ANONYMOUS, 0, 0);
 
 		if ptr == libc::MAP_FAILED {
 			panic!("Failed to map memory: {:?}", libc::strerror(*libc::__errno_location()));
@@ -132,7 +156,8 @@ impl NativeFn {
 	}
 
 	/// Unmaps native function page<br>
-	/// **WARNING**: Reading, writing, executing, or otherwise performing operations on NativeFn after [NativeFn::dealloc] has been called is undefined behavior.
+	/// **Note**: [`NativeFn::dealloc`] is called upon dropping a [`NativeFn`]<br>
+	/// **Warning**: Reading, writing, executing, or otherwise performing operations on NativeFn after [`NativeFn::dealloc`] has been called is undefined behavior.
 	#[cfg(target_os = "linux")]
 	pub unsafe extern "sysv64" fn dealloc(&mut self) {
 		// return allocated memory to os (deallocate)
@@ -154,7 +179,7 @@ impl NativeFn {
 	}
 
 	/// Allocates read/write access memory (per-page)<br>
-	/// **WARNING**: This function must be called before reading from or writing to the function's code or marking it as executable!
+	/// **Warning**: This function must be called before reading from or writing to the function's code or marking it as executable!
 	#[cfg(target_os = "windows")]
 	pub unsafe extern "sysv64" fn alloc(&mut self) {
 		let base = VirtualAlloc(null_mut(), self.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -165,7 +190,8 @@ impl NativeFn {
 	}
 
 	/// Unmaps native function page<br>
-	/// **WARNING**: Reading, writing, executing, or otherwise performing operations on NativeFn after [NativeFn::dealloc] has been called is undefined behavior.
+	/// **Note**: [`NativeFn::dealloc`] is called upon dropping a [`NativeFn`]
+	/// **Warning**: Reading, writing, executing, or otherwise performing operations on NativeFn after [`NativeFn::dealloc`] has been called is undefined behavior.
 	#[cfg(target_os = "windows")]
 	pub unsafe extern "sysv64" fn dealloc(&mut self) {
 		let status = VirtualFree(self.addr as LPVOID, self.size, MEM_DECOMMIT);
