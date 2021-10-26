@@ -1,86 +1,140 @@
-# E# Bytecode Standard<sup><sup><sub>`0.6.1`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.7-alpha.1`</sub></sup></sup>
 
-## Type Modifiers
+# Definitions
+Identifier | Name | Description
+---------- | ---- | -----------
+`class` | Class | A struct or trait type.
+`class-id` | Class Identifier | A UTF-8 string terminated by `;` representing a class.
+`object` | Object | An instance of a class.
+`struct-object` | Struct Object | An instance of a struct.
+`trait-object` | Trait Object | An instance of a trait.
+`type-id` | [Type ID](#type-id) | A `u4` representing a primitive type.
+`type-modifier` | [Type Modifier](#type-modifier) | A `u4` representing a [Type Modifier](#type-modifier).
+`type-flags` | Type Flags | A `u8` representing a [Type Modifier](#type-modifier) (first 4 bits) and a [Type ID](#type-id) (last 4 bits)
+`fn-ref` | Function Reference | A UTF-8 string referencing a function.
+
+# File Structure
+## Magic
+`E5 00 C0 DE`
+## Class Table
 ### Description
-A type modifier is used to describe or modify types. For example, you may prefix the signature `B` with `U` resulting in the fully qualified signature `UB`: an unsigned byte. **Note: Using any undefined type modifiers will result in undefined behavior.**
-### Table
-Identifier | Flag Index | Modifier | Description | Example
----------- | ---------- | -------- | ----------- | -------
-`U` | `0` | `unsigned` | Tells the VM to treat the type as an unsigned type. | `UI`
-`E` | `1` | `data-type` | A type definition. This may be a struct or trait. | `Efoo.bar.ExampleTrait;`
-
-## Definitions
-Identifier | Name | Description | Example
----------- | ---- | ----------- | -------
-`struct-object` | Struct Object | An instance of a struct. | `N/A`
-`trait-object` | Trait Object | An instance of a trait. | `N/A`
-`class` | Class | A "class" may refer to a struct or trait. | `N/A`
-`class-id` | Class Identifier | A unique identifier representing a class. | `lang.type.Object`
-`type-flags` | Type Flags | A `u8` representing a primitive type. See [Type Flags](#type-flags) for more details. | `N/A`
-`modifier-flags` | Type Modifier Flags | A `u8` representing a [Type Modifier](#type-modifiers). | `N/A` | `N/A`
-`type-modifier` | Type Modifier | A UTF-8 character representing a [Type Modifier](#type-modifiers). | `UB`
-
-## Type Flags
+The class table holds class defenitions. The last 4 bytes of the table are `DE AD CA FE`.
+### Format
+#### Identifier
+###### Description
+The first bytes in the class definition are the identifier. A fully qualified identifier consists of a string of UTF-8 characters starting with the package identifier seperated by a `.`, terminated by a `;`, where the bytes, starting from the last byte after the `;` and ending before the first `.`, are the class name, and the rest of the bytes, seperated by a `.`, are the package qualifiers.
+###### Example
+```
+foo.Bar;
+```
+#### TODO
+## Function Table
 ### Description
-A `u8` representing a primitive type. **Note: The last 4 bits are reserved.**
-### Table
-Type | Flag
----- | ----
-`B` | `0x00`
-`S` | `0x01`
-`I` | `0x02`
-`L` | `0x03`
-`F` | `0x04`
-`D` | `0x05`
-`O` | `0x06`
-`T` | `0x07`
+The function table holds function definitions. The last 4 bytes of the table are `DE AD C0 DE`.
+### Format
+#### Identifier
+###### Example
+```
+foo.Bar#bar
+```
+#### Parameters
+###### Example
+```
+A0 B6 F
+```
+#### Return Type
+###### Example
+```
+F
+```
+#### TODO
 
-## Signatures
-Signature | Type | Description | Example
---------- | ---- | ----------- | -------
-`B` | `i8`/`u8` | 8-bit integer/byte | `N/A`
-`S` | `i16`/`u16` | 16-bit integer | `N/A`
-`I` | `i32`/`u32` | 32-bit integer | `N/A`
-`L` | `i64`/`u64` | 64-bit integer | `N/A`
-`F` | `f32` | Single-precision floating-point integer | `N/A`
-`D` | `f64` | Double-precision floating-point integer | `N/A`
-`B` | `bool` | A boolean. | `N/A`
-`O` | `struct-object` | An instance of a struct. Structs may hold data, implement methods, and inherit traits. | `Olang.type.String;`
-`T` | `trait-object` | An instance of a trait; also known as a "trait object". Traits cannot hold data; they may only hold methods. Trait objects hold references to methods. Structs may inherit traits, but traits may not inherit structs. | `Tfoo.bar.ExampleTrait;`
-`R<signature>` | `reference` | A pointer to a location in memory. | `RTlang.type.Object;`
-`O<class-id>;` | `struct-type-signature` | A fully qualified struct type signature. | `Olang.type.String;`
-`T<class-id>;` | `trait-type-signature` | A fully qualified trait type signature. | `Tlang.type.Object;`
+# Type ID
+## Description
+A `u4` representing a primitive type.
+## Table
+Type | Identifier | Operands
+---- | ---------- | --------
+`u8` | `0` | `(none)`
+`u16` | `1` | `(none)`
+`u32` | `2` | `(none)`
+`u64` | `3` | `(none)`
+`i8` | `4` | `(none)`
+`i16` | `5` | `(none)`
+`i32` | `6` | `(none)`
+`i64` | `7` | `(none)`
+`f32` | `8` | `(none)`
+`f64` | `9` | `(none)`
+`object` | `A` | `(none)`
+`function` | `B` | `[u8]` *(`fn-ref`)*
+`array` | `C` | `[u8]` *(`type-id`)*
+`void / ()` | `F` | `(none)`
 
-## Instructions
-### Description
-Opcodes that the VM will interpret at runtime.
-### Limitations
+# Type Modifier
+## Description
+A `u4` used to describe or modify types. **Note: Using an undefined type modifier will result in undefined behavior.**
+## Table
+Flag Index | Modifier | Description
+---------- | -------- | -----------
+`0` | `data-type` | A type definition. This may be a struct or trait.
+
+# Opcodes
+## Description
+Opcodes that denote the operands and behavior of an instruction.
+## Limitations
 There may only be up to 256 instructions. This is because the VM represents every opcode with a `u8`.
-### Table
+## Table
 Instruction | Operands | Description | Opcode
 ----------- | -------- | ----------- | ------
-`nop` | `N/A` | An empty instruction that does nothing | `0x00`
-`iadd` | `i<n>`, `i<n>` | `(none)` | `0x01`
-`uadd` | `u<n>`, `u<n>` | `(none)` | `0x02`
-`fadd` | `f<n>`, `f<n>` | `(none)` | `0x03`
-`isub` | `i<n>`, `i<n>` | `(none)` | `0x04`
-`usub` | `u<n>`, `u<n>` | `(none)` | `0x05`
-`fsub` | `f<n>`, `f<n>` | `(none)` | `0x06`
-`imul` | `i<n>`, `i<n>` | `(none)` | `0x07`
-`umul` | `u<n>`,`u<n>` | `(none)` | `0x08`
-`fmul` | `f<n>`,`f<n>` | `(none)` | `0x09`
-`idiv` | `i<n>`,`i<n>` | `(none)` | `0x0A`
-`udiv` | `u<n>`, `u<n>` | `(none)` | `0x0B`
-`fdiv` | `f<n>`, `f<n>` | `(none)` | `0x0C`
-`rpush` | `u8` *(`type-flags`)*, `u64` *(`reference`)* | Push reference onto stack | `0x0D`
-`ipush` | `u8` *(`type-flags`)*, `i<n>` | Push signed integer onto stack | `0x0E`
-`upush` | `u8` *(`type-flags`)*, `u<n>` | Push unsigned integer onto stack | `0x0F`
-`fpush` | `u8` *(`type-flags`)*, `f<n>` | Push floating-point integer onto stack | `0x10`
-`pop` | `(none)` | Pop first value off stack | `0x11`
-`popl` | `(none)` | Pop last value off stack | `0x12`
-`i2u` | `u8` *(`type-flags`)*, `i<n>` | Converts a signed integer to an unsigned integer | `0x13`
-`u2i` | `u8` *(`type-flags`)*, `u<n>` | Converts an unsigned integer to a signed integer | `0x14`
-`i2f` | `u8` *(`type-flags`)*, `i<n>` | Converts a signed integer to a floating-point integer | `0x15`
-`f2i` | `u8` *(`type-flags`)*, `f<n>` | Converts a floating-point integer to a signed integer | `0x16`
-`u2f` | `u8` *(`type-flags`)*, `u<n>` | Converts an unsigned integer to a floating-point ineger | `0x17`
-`f2u` | `u8` *(`type-flags`)*, `f<n>` | Converts a floating-point integer to an unsigned integer | `0x18`
+`nop` | `N/A` | An empty instruction that does nothing | `00`
+`addb` | `i8`, `i8` | `(none)` | `01`
+`adds` | `i16`, `i16` | `(none)` | `02`
+`addi` | `i32`, `i32` | `(none)` | `03`
+`addl` | `i64`, `i64` | `(none)` | `04`
+`uaddb` | `u8`, `u8` | `(none)` | `05`
+`uadds` | `u16`, `u16` | `(none)` | `06`
+`uaddi` | `u32`, `u32` | `(none)` | `07`
+`uaddl` | `u64`, `u64` | `(none)` | `08`
+`addf` | `f32`, `f32` | `(none)` | `09`
+`addd` | `f64`, `f64` | `(none)` | `0A`
+`subb` | `i8`, `i8` | `(none)` | `0B`
+`subs` | `i16`, `i16` | `(none)` | `0C`
+`subi` | `i32`, `i32` | `(none)` | `0D`
+`subl` | `i64`, `i64` | `(none)` | `0E`
+`usubb` | `u8`, `u8` | `(none)` | `0F`
+`usubs` | `u16`, `u16` | `(none)` | `10`
+`usubi` | `u32`, `u32` | `(none)` | `11`
+`usubl` | `u64`, `u64` | `(none)` | `12`
+`subf` | `f32`, `f32` | `(none)` | `13`
+`subd` | `f64`, `f64` | `(none)` | `14`
+`mulb` | `i8`, `i8` | `(none)` | `15`
+`muls` | `i16`, `i16` | `(none)` | `16`
+`muli` | `i32`, `i32` | `(none)` | `17`
+`mull` | `i64`, `i64` | `(none)` | `18`
+`umulb` | `u8`,`u8` | `(none)` | `19`
+`umuls` | `u16`,`u16` | `(none)` | `1A`
+`umuli` | `u32`,`u32` | `(none)` | `1B`
+`umull` | `u64`,`u64` | `(none)` | `1C`
+`umulf` | `f32`,`f32` | `(none)` | `1D`
+`umuld` | `f64`,`f64` | `(none)` | `1E`
+`divb` | `i8`,`i8` | `(none)` | `1F`
+`divs` | `i16`,`i16` | `(none)` | `20`
+`divi` | `i32`,`i32` | `(none)` | `21`
+`divl` | `i64`,`i64` | `(none)` | `22`
+`udivb` | `u8`, `u8` | `(none)` | `23`
+`udivs` | `u16`, `u16` | `(none)` | `24`
+`udivi` | `u32`, `u32` | `(none)` | `25`
+`udivl` | `u64`, `u64` | `(none)` | `26`
+`divf` | `f32`, `f32` | `(none)` | `27`
+`divd` | `f64`, `f64` | `(none)` | `28`
+`push` | `u8` *(`type-id`)*, `u<n>` | Push value onto stack | `2A`
+`pop` | `(none)` | Pop first value off stack | `2B`
+`popl` | `(none)` | Pop last value off stack | `2C`
+`i2u` | `u8` *(`type-id`)*, `i<n>` | Converts a signed integer to an unsigned integer | `2D`
+`u2i` | `u8` *(`type-id`)*, `u<n>` | Converts an unsigned integer to a signed integer | `2E`
+`i2f` | `u8` *(`type-id`)*, `i<n>` | Converts a signed integer to a floating-point integer | `2F`
+`f2i` | `u8` *(`type-id`)*, `f<n>` | Converts a floating-point integer to a signed integer | `30`
+`u2f` | `u8` *(`type-id`)*, `u<n>` | Converts an unsigned integer to a floating-point ineger | `31`
+`f2u` | `u8` *(`type-id`)*, `f<n>` | Converts a floating-point integer to an unsigned integer | `32`
+`call` | `u64` *(`fun-ref`)* | Calls a function | `33`
+`ret` | `(none)` | Returns from a function | `34`
