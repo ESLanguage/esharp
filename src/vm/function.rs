@@ -115,7 +115,7 @@ impl Function for NativeFn {
 
 impl From<RawFn> for NativeFn {
 	fn from(raw: RawFn) -> Self {
-		let page = unsafe { NativeFn::alloc(null_mut(), page_size()) }.expect("Failed to map and allocate function page");
+		let page = unsafe { NativeFn::alloc(null_mut(), crate::page_align!(raw.size)) }.expect("Failed to map and allocate function page");
 
 		// TODO transpile bytecode
 		unsafe {

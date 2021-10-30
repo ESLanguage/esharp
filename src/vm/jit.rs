@@ -3,6 +3,13 @@ use std::fs::File;
 use std::io::Read;
 use std::os::raw::c_char;
 
+#[macro_export]
+macro_rules! page_align {
+    ( $addr:expr ) => {
+	    (($addr) + page_size() - 1) & !(page_size() - 1)
+    };
+}
+
 #[naked]
 unsafe extern "sysv64" fn _test_asm(x: i32) -> i32 {
 	asm!(
