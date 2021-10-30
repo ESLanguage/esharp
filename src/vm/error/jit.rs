@@ -1,7 +1,8 @@
+use std::os::raw::c_char;
 use crate::vm::meta::platform::PlatformKind;
 
-pub enum ErrorKind {
+pub enum CompileError {
 	Unknown,
-	InvalidInsn(*mut u8),
+	IllegalInsn(*mut u8),
 	UnsupportedPlatform(PlatformKind),
 }

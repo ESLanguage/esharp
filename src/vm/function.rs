@@ -1,3 +1,7 @@
+use std::ffi::CStr;
+use std::io::Error;
+use std::mem::transmute;
+use std::os::raw::{c_char, c_int};
 use libc::c_void;
 
 #[cfg(target_os = "windows")]
@@ -14,7 +18,6 @@ use winapi::{
 	um::memoryapi::VirtualFree,
 	um::winnt::MEM_DECOMMIT
 };
-#[cfg(target_os = "windows")]
 use std::ptr::null;
 use std::ptr::null_mut;
 use crate::vm::error::*;
@@ -48,7 +51,7 @@ pub fn page_size() -> usize {
 	}
 }
 
-pub trait Function {
+pub trait Function : Sized {
 	fn addr(&self) -> *const u8;
 	fn size(&self) -> usize;
 }
@@ -79,6 +82,17 @@ impl RawFn {
 			size: page_size(),
 		}
 	}
+
+	pub unsafe fn compile(self) -> (Result<NativeFn, jit::CompileError>, Result<(), Error>) {
+		// transpile bytecode to machine code
+		let mut native: NativeFn = self.into();
+
+		println!("Transpiled bytecode {:?}", native);
+
+		let exec_result = native.exec();
+
+		(Ok(native), exec_result)
+	}
 }
 
 /// Executable function
@@ -99,71 +113,96 @@ impl Function for NativeFn {
 	}
 }
 
+impl From<RawFn> for NativeFn {
+	fn from(raw: RawFn) -> Self {
+		let page = unsafe { NativeFn::alloc(null_mut(), page_size()) }.expect("Failed to map and allocate function page");
+
+		// TODO transpile bytecode
+		unsafe {
+			// copy bytecode to function page
+			raw.addr.copy_to(page, raw.size);
+		}
+
+		// construct native function from new page address and size
+		let native = NativeFn {
+			addr: page,
+			size: raw.size,
+		};
+		// TODO
+		native
+	}
+}
+
 // implement custom destructor to clean up dropped functions
 impl Drop for NativeFn {
 	fn drop(&mut self) {
 		unsafe {
-			self.dealloc();
+			println!("Dropped NativeFn");
+			self.dealloc().expect("Failed to deallocate native function");
 		}
 	}
 }
 
 impl NativeFn {
-	/// Compiles a [`RawFn`]
-	pub unsafe fn compile(raw: RawFn) -> Result<NativeFn, jit::ErrorKind> {
-		// allocate page
-		let page = NativeFn::alloc(page_size());
-
-		// transpile bytecode to machine code
-
-		// create NativeFn
-		let mut native = NativeFn {
-			addr: page,
-			size: page_size(),
-		};
-
-		// mark page as executable
-		native.exec();
-
-		Ok(native)
-	}
-
 	/// Marks the function as read-only and executable
 	#[cfg(target_os = "linux")]
-	pub unsafe extern "sysv64" fn exec(&mut self) {
+	pub unsafe fn exec(&mut self) -> Result<(), Error> {
 		// change protection flags so we can run the native code
-		let status = libc::mprotect(self.addr as *mut c_void, self.size, libc::PROT_READ | libc::PROT_EXEC);
+		let status = self._exec();
 
 		if status < 0 {
-			panic!("Failed to mark memory as executable {:?}", libc::strerror(*libc::__errno_location()));
+			Err(Error::last_os_error())
+		} else {
+			Ok(())
 		}
+	}
+
+	#[cfg(target_os = "linux")]
+	#[no_mangle]
+	unsafe extern "sysv64" fn _exec(&mut self) -> c_int {
+		libc::mprotect(self.addr as *mut c_void, self.size, libc::PROT_READ | libc::PROT_EXEC)
 	}
 
 	/// Maps and allocates read/write access memory (per-page)<br>
 	/// **Warning**: This function must be called before reading from or writing to the function's code or marking it as executable!
 	#[cfg(target_os = "linux")]
-	pub unsafe extern "sysv64" fn alloc(size: usize) -> *mut u8 {
-		// request a page of memory (only self.size is zero-initialized and usable)
-		let ptr = libc::mmap64(null_mut(), size, libc::PROT_READ | libc::PROT_WRITE, libc::MAP_PRIVATE | libc::MAP_ANONYMOUS, 0, 0);
+	pub unsafe fn alloc(addr: *mut u8, size: usize) -> Result<*mut u8, Error> {
+		let ptr = NativeFn::_alloc(addr, size);
 
 		if ptr == libc::MAP_FAILED {
-			panic!("Failed to map memory: {:?}", libc::strerror(*libc::__errno_location()));
+			Err(Error::last_os_error())
+		} else {
+			// cast ptr to *mut u8 and return it
+			Ok(ptr as *mut u8)
 		}
+	}
 
-		ptr as *mut u8
+	#[cfg(target_os = "linux")]
+	#[no_mangle]
+	unsafe extern "sysv64" fn _alloc(addr: *mut u8, size: usize) -> *mut c_void {
+		// request a page of memory (only self.size is zero-initialized and usable)
+		libc::mmap64(addr as *mut c_void, size, libc::PROT_READ | libc::PROT_WRITE, libc::MAP_PRIVATE | libc::MAP_ANONYMOUS, 0, 0)
 	}
 
 	/// Unmaps native function page<br>
 	/// **Note**: [`NativeFn::dealloc`] is called upon dropping a [`NativeFn`]<br>
 	/// **Warning**: Reading, writing, executing, or otherwise performing operations on NativeFn after [`NativeFn::dealloc`] has been called is undefined behavior.
 	#[cfg(target_os = "linux")]
-	pub unsafe extern "sysv64" fn dealloc(&mut self) {
-		// return allocated memory to os (deallocate)
-		let status = libc::munmap(self.addr as *mut c_void, self.size);
+	pub unsafe fn dealloc(&mut self) -> Result<(), Error> {
+		let status = self._dealloc();
 
 		if status < 0 {
-			panic!("Failed to unmap memory: {:?}", libc::strerror(*libc::__errno_location()));
+			Err(Error::last_os_error())
+		} else {
+			Ok(())
 		}
+	}
+
+	#[cfg(target_os = "linux")]
+	#[no_mangle]
+	unsafe extern "sysv64" fn _dealloc(&mut self) -> c_int {
+		// unmap page(s)
+		libc::munmap(self.addr as *mut c_void, self.size)
 	}
 
 	/// Marks the function as read-only and executable
@@ -179,8 +218,8 @@ impl NativeFn {
 	/// Allocates read/write access memory (per-page)<br>
 	/// **Warning**: This function must be called before reading from or writing to the function's code or marking it as executable!
 	#[cfg(target_os = "windows")]
-	pub unsafe extern "sysv64" fn alloc(&mut self) {
-		let base = VirtualAlloc(null_mut(), self.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	pub unsafe extern "sysv64" fn alloc(addr: *mut u8, size: usize) {
+		let base = VirtualAlloc(addr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 		if base == null() {
 			panic!("Failed to allocate function page");

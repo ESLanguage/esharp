@@ -3,13 +3,12 @@ pub enum PlatformKind {
 	Os(OperatingSystem),
 }
 
-#[allow(non_camel_case_types)]
 pub enum CpuArch {
 	Unknown,
-	x86,
-	x86_64,
+	X86,
+	X86_64,
 	ARMv8,
-	aarch64,
+	Aarch64,
 }
 
 pub enum OperatingSystem {

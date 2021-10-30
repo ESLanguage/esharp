@@ -1,3 +1,8 @@
+use std::ffi::CStr;
+use std::fs::File;
+use std::io::Read;
+use std::os::raw::c_char;
+
 #[naked]
 unsafe extern "sysv64" fn _test_asm(x: i32) -> i32 {
 	asm!(
@@ -16,28 +21,54 @@ pub fn test_asm(x: i32) -> i32 {
 /// An E# binary (executable, library, etc.)
 pub trait BinaryFile {
 	/// Returns the contents of the file
-	fn buf(&self) -> &[u8];
+	fn buf(&mut self) -> &mut [u8];
+	fn size(&self) -> usize;
 }
 
 /// An E# executable<br>
 /// **Note**: There may only be one executable loaded per-thread.
 pub struct Executable {
 	buf: Box<[u8]>,
+	size: usize,
+}
+
+impl From<File> for Executable {
+	fn from(mut file: File) -> Self {
+		let mut buf = vec![];
+
+		file.read_to_end(&mut buf).expect("Failed to read from executable file");
+
+		let len = buf.len();
+
+		Self {
+			buf: buf.into_boxed_slice(),
+			size: len,
+		}
+	}
 }
 
 impl BinaryFile for Executable {
-	fn buf(&self) -> &[u8] {
-		&*self.buf
+	fn buf(&mut self) -> &mut [u8] {
+		&mut *self.buf
+	}
+
+	fn size(&self) -> usize {
+		self.size
 	}
 }
 
 pub struct DynamicLibrary {
 	buf: Box<[u8]>,
+	size: usize,
 }
 
 impl BinaryFile for DynamicLibrary {
-	fn buf(&self) -> &[u8] {
-		&*self.buf
+	fn buf(&mut self) -> &mut [u8] {
+		&mut *self.buf
+	}
+
+	fn size(&self) -> usize {
+		self.size
 	}
 }
 

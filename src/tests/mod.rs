@@ -1,9 +1,10 @@
 use std::fs::File;
 use std::path::Path;
 use std::io::{Read, Seek};
-use crate::vm::jit::test_asm;
+use crate::vm::error::jit::CompileError::IllegalInsn;
+use crate::vm::jit::{BinaryFile, Executable, test_asm};
 use crate::vm::function;
-use crate::vm::function::{NativeFn, RawFn};
+use crate::vm::function::{NativeFn, page_size, RawFn};
 
 #[test]
 fn asm_test() {
@@ -13,23 +14,25 @@ fn asm_test() {
 
 #[test]
 fn vm_test() {
-	let mut file = File::open(Path::new("test.esbin")).unwrap();
-	let mut buf = vec![]; // what the fuck
+	let file = File::open(Path::new("test.esbin")).unwrap();
+	let mut exec = Executable::from(file);
+	let buf = exec.buf();
 
-	// read file to buf
-	file.read_to_end(&mut buf).expect("Failed to read from file");
+	println!("Initializing JIT...");
 
 	// initialize JIT
 	function::init_page_size();
 
+	println!("Starting JIT...");
+
 	// start JIT
-	let raw = RawFn::new(buf.as_mut_slice());
-	
+	let raw = RawFn::new(buf);
+
+	println!("Compiling bytecode...");
+
 	// compile bytecode
-	let compiled = unsafe { NativeFn::compile(raw) };
-	
-	match compiled {
-		Err(e) => {},
-		Ok(_) => println!("compiled bytecode"),
-	}
+	let compile_result = unsafe { raw.compile() };
+	let native = compile_result.0.ok().expect("Failed to compile native function");
+	compile_result.1.expect("Failed to mark page executable and read-only");
+	println!("Successfully compiled bytecode: {:?}", native);
 }
