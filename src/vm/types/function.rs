@@ -18,7 +18,7 @@ use winapi::{
 	um::memoryapi::VirtualFree,
 	um::winnt::MEM_DECOMMIT
 };
-use std::ptr::null;
+use std::ptr::{null, slice_from_raw_parts, slice_from_raw_parts_mut};
 use std::ptr::null_mut;
 use crate::vm::error::*;
 
@@ -83,24 +83,31 @@ impl RawFn {
 		}
 	}
 
-	pub unsafe fn compile(self) -> (Result<NativeFn, jit::CompileError>, Result<(), Error>) {
+	pub unsafe fn compile(self) -> Result<NativeFn, jit::CompileError> {
+		// convert to NativeFn
+		let native: NativeFn = self.into();
+
 		// transpile bytecode to machine code
-		let mut native: NativeFn = self.into();
+		#[cfg(target_arch = "x86_64")]
+		{
+		}
 
-		println!("Transpiled bytecode {:?}", native);
-
-		let exec_result = native.exec();
-
-		(Ok(native), exec_result)
+		Ok(native)
 	}
 }
 
-/// Executable function
+/// Executable function<br>
+/// ***Note:** Remember to drop the args when done!*
 #[repr(C)]
 #[derive(Debug)]
 pub struct NativeFn {
 	addr: *mut u8,
 	size: usize,
+	name: *mut str,
+	name_size: usize,
+	args: *mut u8,
+	args_size: usize,
+	ret: u8,
 }
 
 impl Function for NativeFn {
@@ -115,20 +122,91 @@ impl Function for NativeFn {
 
 impl From<RawFn> for NativeFn {
 	fn from(raw: RawFn) -> Self {
+		// allocate page
 		let page = unsafe { NativeFn::alloc(null_mut(), crate::page_align!(raw.size)) }.expect("Failed to map and allocate function page");
 
-		// TODO transpile bytecode
-		unsafe {
-			// copy bytecode to function page
-			raw.addr.copy_to(page, raw.size);
+		// prepare to iterate over bytes
+		let tail = raw.addr;
+		let mut head = tail;
+
+		macro_rules! peek {
+			( $x:ident ) => {
+				*$x.add(1)
+			};
 		}
+
+		macro_rules! skip {
+			( $x:ident ) => {
+				$x = $x.add(1);
+			}
+		}
+
+		macro_rules! consume {
+			( $x:ident ) => {
+				{
+					let val = *$x;
+					$x = $x.add(1);
+					val
+				}
+			};
+		}
+
+		// pull out identifier, parameters, and return type
+		let mut name: String;
+		let mut args: Vec<u8>;
+		let ret: u8;
+
+		unsafe {
+			// get name
+			name = String::new();
+
+			// iterate over bytes while moving head until we hit ";"
+			while *head as char != ';' {
+				// append the byte to name
+				name.push(consume!(head) as char);
+			}
+
+			// skip ";"
+			skip!(head);
+
+			// get args
+			args = vec![];
+
+			// iterate over bytes while moving head until we hit 0xFF
+			while *head != 0xFF {
+				// append byte to end of args
+				args.push(consume!(head));
+			}
+
+			// get ret (last byte)
+			ret = peek!(head);
+		}
+
+		// convert vectors to fixed size boxes
+		//  leak the boxes so we can manually drop them later
+		let name = Box::leak(name.into_boxed_str());
+		let args = Box::leak(args.into_boxed_slice());
 
 		// construct native function from new page address and size
 		let native = NativeFn {
 			addr: page,
 			size: raw.size,
+			// decompose vectors
+			name,
+			name_size: name.len(),
+			args: args.as_mut_ptr(),
+			args_size: args.len(),
+			// move return type
+			ret,
 		};
-		// TODO
+
+		unsafe {
+			// recompose boxed string slice
+			println!("name: {}", native.name.as_ref().expect("Failed to retrieve reference to function name"));
+			// recompose boxed bytes
+			println!("args: {:#X?}", slice_from_raw_parts(native.args, native.args_size).as_ref().expect("Failed to borrow function arguments slice"));
+		}
+		println!("ret: {:#X}", native.ret);
 		native
 	}
 }
@@ -137,7 +215,11 @@ impl From<RawFn> for NativeFn {
 impl Drop for NativeFn {
 	fn drop(&mut self) {
 		unsafe {
-			println!("Dropped NativeFn");
+			// recompose and drop name box
+			drop(Box::from_raw(self.name));
+			// recompose slice from raw parts and drop
+			drop(Box::from_raw(slice_from_raw_parts_mut(self.args, self.args_size)));
+			// deallocate function page
 			self.dealloc().expect("Failed to deallocate native function");
 		}
 	}
@@ -236,34 +318,5 @@ impl NativeFn {
 		if !status {
 			panic!("Failed to deallocate function page");
 		}
-	}
-
-	#[cfg(target_arch = "x86_64")]
-	#[inline]
-	pub unsafe extern "sysv64" fn call(&mut self) {
-		asm!(
-			"call {}",
-			in(reg) self.addr,
-		);
-	}
-
-	#[cfg(target_arch = "x86_64")]
-	#[inline]
-	pub unsafe extern "sysv64" fn call_ret(&mut self) -> *mut () {
-		asm!(
-			"call {}",
-			"ret",
-			in(reg) self.addr,
-			options(noreturn),
-		)
-	}
-
-	#[cfg(target_arch = "x86_64")]
-	#[inline]
-	pub unsafe extern "sysv64" fn jmp(&mut self) {
-		asm!(
-			"jmp {}",
-			in(reg) self.addr,
-		);
 	}
 }

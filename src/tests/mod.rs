@@ -2,9 +2,9 @@ use std::fs::File;
 use std::path::Path;
 use std::io::{Read, Seek};
 use crate::vm::error::jit::CompileError::IllegalInsn;
-use crate::vm::jit::{BinaryFile, Executable, test_asm};
-use crate::vm::function;
-use crate::vm::function::{NativeFn, page_size, RawFn};
+use crate::vm::bin::{BinaryFile, Executable, test_asm};
+use crate::vm::types::function;
+use crate::vm::types::function::RawFn;
 
 #[test]
 fn asm_test() {
@@ -32,7 +32,10 @@ fn vm_test() {
 
 	// compile bytecode
 	let compile_result = unsafe { raw.compile() };
-	let native = compile_result.0.ok().expect("Failed to compile native function");
-	compile_result.1.expect("Failed to mark page executable and read-only");
+	let mut native = compile_result.expect("Failed to compile native function");
+	unsafe {
+		// mark native as executable, and panic on fail
+		native.exec().expect("Failed to mark page executable and read-only");
+	}
 	println!("Successfully compiled bytecode: {:?}", native);
 }

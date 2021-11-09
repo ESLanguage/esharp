@@ -1,8 +1,10 @@
+#[derive(Debug)]
 pub enum PlatformKind {
 	Arch(CpuArch),
 	Os(OperatingSystem),
 }
 
+#[derive(Debug)]
 pub enum CpuArch {
 	Unknown,
 	X86,
@@ -11,6 +13,7 @@ pub enum CpuArch {
 	Aarch64,
 }
 
+#[derive(Debug)]
 pub enum OperatingSystem {
 	Unknown,
 	Unix,
