@@ -105,7 +105,7 @@ A `u4` representing a primitive type. The operands of these types go after any `
 | `object`      | `6`        | `N/A`               |
 | `function`    | `7`        | `[u8]` (`fn-ref`)   |
 | `array`       | `8`        | `u8` (`type-flags`) |
-| `any`         | `9`        | `N/A`               |
+| `dyn`         | `9`        | `N/A`               |
 | `void` / `()` | `F`        | `N/A`               |
 
 # Type Modifier
