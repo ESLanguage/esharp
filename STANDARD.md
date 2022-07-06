@@ -23,7 +23,7 @@
 ## Magic
 `E5 00 C0 DE`
 ## Offsets
-Each offset is a `u64` that describes the offset at which specific data is.
+Each offset is a `u32` that describes the offset at which specific data is.
 ### Table
 | Name           |
 |----------------|
