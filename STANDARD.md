@@ -95,19 +95,19 @@ F0
 A `u4` representing a primitive type. The operands of these types go after any `type-flags`.
 If there are any operands, they will come immediately after the `type-flags`.
 ## Table
-| Type          | Identifier | Operands              |
-|---------------|------------|-----------------------|
-| `i8`          | `0`        | `N/A`                 |
-| `i16`         | `1`        | `N/A`                 |
-| `i32`         | `2`        | `N/A`                 |
-| `i64`         | `3`        | `N/A`                 |
-| `f32`         | `4`        | `N/A`                 |
-| `f64`         | `5`        | `N/A`                 |
-| `object`      | `6`        | `N/A`                 |
-| `function`    | `7`        | `imm8` (`index`)      |
-| `array`       | `8`        | `imm8` (`type-flags`) |
-| `dyn`         | `9`        | `N/A`                 |
-| `void` / `()` | `F`        | `N/A`                 |
+| Type          | Identifier | Operands                    |
+|---------------|------------|-----------------------------|
+| `i8`          | `0`        | `N/A`                       |
+| `i16`         | `1`        | `N/A`                       |
+| `i32`         | `2`        | `N/A`                       |
+| `i64`         | `3`        | `N/A`                       |
+| `f32`         | `4`        | `N/A`                       |
+| `f64`         | `5`        | `N/A`                       |
+| `object`      | `6`        | `N/A`                       |
+| `function`    | `7`        | `imm16` (`index`) [`fn-id`] |
+| `array`       | `8`        | `imm8` (`type-flags`)       |
+| `dyn`         | `9`        | `N/A`                       |
+| `void` / `()` | `F`        | `N/A`                       |
 
 # Type Modifier
 ## Description
@@ -143,7 +143,7 @@ There may only be up to 256 opcodes. This is because the VM represents every opc
 | `pop`       | `N/A`                                                    | ← `any`          | Store value in local variable stack.                              | `11`   |
 |             |                                                          | ⇒ `any`          |                                                                   |        |
 | `cast`      | `imm8` (`type-flags`) *from*, `imm8` (`type-flags`) *to* |                  | Casts a value from type `A` to type `B`.                          | `14`   |
-| `call`      | `imm16` (`index`) [`fn-ref`]                             |                  | Calls a function.                                                 | `18`   |
+| `call`      | `imm16` (`index`) [`fn-id`]                              |                  | Calls a function.                                                 | `18`   |
 | `ret`       | `N/A`                                                    |                  | Returns from a function.                                          | `1A`   |
 | `vret`      | `imm8` (`type-flags`)                                    |                  | Returns from a function, pushing a value onto the caller's stack. | `1B`   |
 | `ldc`       | `imm16` (`index`)                                        |                  | Pushes a constant to the stack.                                   | `1C`   |
