@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.8.0-alpha.2`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.8.0-alpha.3`</sub></sup></sup>
 
 # Definitions
 | Identifier      | Name                            | Description                                                                                                    |
