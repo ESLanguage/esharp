@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.9.1-alpha.0`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.9.1-alpha.1`</sub></sup></sup>
 
 # Definitions
 | Identifier      | Name                            | Description                                                                                                    |
@@ -48,7 +48,8 @@ The constant table holds constant values.<br>
 | `<end>` | `imm16` `0xFFFF` | The end of the constant definition.         |
 ## Class Table
 ### Description
-The class table holds class defenitions. The `<end>` value of the last class is `0xDEAD`.
+The class table holds class defenitions. The `<end>` value of the last class is `DEAD`.<br>
+If the first 8 bytes of the first class definition are `DEADCAFEBABEDEAD`, then there are no class definitions.
 ### Identifier
 ##### Description
 The first bytes in the class definition are the identifier. A fully qualified identifier consists of a string of UTF-8 characters starting with the package identifier seperated by a `.`, where the bytes, starting from the last byte and ending before the first `.`, are the class name, and the rest of the bytes, seperated by a `.`, are the package qualifiers.
@@ -66,7 +67,8 @@ foo.Bar
 | `<end>`    | `imm16` `0xFFFF`               |                                                                                              |
 ## Function Table
 ### Description
-The function table holds function definitions. The `<end>` value of the last function is `0xCAFE`.
+The function table holds function definitions. The `<end>` value of the last function is `CAFE`.<br>
+If the first 8 bytes of the first function definition are `DEADCAFEBABEDEAD`, then there are no function definitions.
 ### Function
 | Name        | Type & Value                | Description                             |
 |-------------|-----------------------------|-----------------------------------------|
@@ -79,12 +81,14 @@ The function table holds function definitions. The `<end>` value of the last fun
 
 # Field Table
 ## Description
-The field table holds fields for classes.
+The field table holds fields for classes. The `<end>` value of the last field is `BABE`.<br>
+If the first 8 bytes of the first field definition are `DEADCAFEBABEDEAD`, then there are no field definitions.
 ## Field
-| Name | Type & Value                   | Description                  |
-|------|--------------------------------|------------------------------|
-| Name | `imm16` (`index`) *field name* | The UTF-8 name of the field. |
-| Type | `type-flags`                   | The field's type.            |
+| Name     | Type & Value                   | Description                      |
+|----------|--------------------------------|----------------------------------|
+| Name     | `imm16` (`index`) *field name* | The UTF-8 name of the field.     |
+| Type     | `type-flags`                   | The field's type.                |
+| `<end>`  | `imm16` `0xFFFF`               | The end of the field definition. |
 
 # Type ID
 ## Description
