@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.9.1-alpha.1`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.9.2-alpha.0`</sub></sup></sup>
 
 # Definitions
 | Identifier      | Name                            | Description                                                                                                    |
@@ -30,7 +30,7 @@ Each offset is a `u32` that describes the offset at which specific data is.
 | Constant Table |
 | Class Table    |
 | Function Table |
-| `<reserved>`   |
+| Field Table    |
 | `<reserved>`   |
 | `<reserved>`   |
 | `<reserved>`   |
