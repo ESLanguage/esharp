@@ -1,21 +1,22 @@
 # E# Bytecode Standard<sup><sup><sub>`0.8.0-alpha.2`</sub></sup></sup>
 
 # Definitions
-| Identifier      | Name                            | Description                                                                                                  |
-|-----------------|---------------------------------|--------------------------------------------------------------------------------------------------------------|
-| `class`         | Class                           | A struct or trait type.                                                                                      |
-| `class-id`      | Class Identifier                | A UTF-8 string terminated by `;` representing a class.                                                       |
-| `object`        | Object                          | An instance of a class.                                                                                      |
-| `struct-object` | Struct Object                   | An instance of a struct.                                                                                     |
-| `trait-object`  | Trait Object                    | An instance of a trait.                                                                                      |
-| `type-id`       | [Type ID](#type-id)             | A `u4` representing a primitive type.                                                                        |
-| `type-modifier` | [Type Modifier](#type-modifier) | A `u4` representing a [Type Modifier](#type-modifier).                                                       |
-| `type-flags`    | Type Flags                      | A `u8` representing a [Type ID](#type-id) (first 4 bits) and a [Type Modifier](#type-modifier) (last 4 bits) |
-| `fn-id`         | Function Identifier             | A UTF-8 string representing a function's identifier terminated by "`;`".                                     |
-| `imm<n>`        | Immediate `<n>`                 | An immediate byte or string of bytes represented as a bytecode operand.                                      |
-| `"<end>"`       | End                             | The end of a file, byte, function return type, etc. Any data after this is considered to be undefined.       |
-| `any`           | Any                             | An unsized primitive type that represents a type determined at runtime.                                      |
-| `local`         | Local Variable                  | An index of a local variable in the local variable stack.                                                    |
+| Identifier      | Name                            | Description                                                                                                    |
+|-----------------|---------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `class`         | Class                           | A struct or trait type.                                                                                        |
+| `class-id`      | Class Identifier                | A UTF-8 string terminated by `;` representing a class.                                                         |
+| `object`        | Object                          | An instance of a class.                                                                                        |
+| `struct-object` | Struct Object                   | An instance of a struct.                                                                                       |
+| `trait-object`  | Trait Object                    | An instance of a trait.                                                                                        |
+| `type-id`       | [Type ID](#type-id)             | A `u4` representing a primitive type.                                                                          |
+| `type-modifier` | [Type Modifier](#type-modifier) | A `u4` representing a [Type Modifier](#type-modifier).                                                         |
+| `type-flags`    | Type Flags                      | A `u8` representing a [Type ID](#type-id) (lower 4 bits) and a [Type Modifier](#type-modifier) (higher 4 bits) |
+| `fn-id`         | Function Identifier             | A UTF-8 string representing a function's identifier terminated by "`;`".                                       |
+| `imm<n>`        | Immediate `<n>`                 | An immediate byte or string of bytes represented as a bytecode operand.                                        |
+| `"<end>"`       | End                             | The end of a file, byte, function return type, etc. Any data after this is considered to be undefined.         |
+| `any`           | Any                             | An unsized primitive type that represents a type determined at runtime.                                        |
+| `local`         | Local Variable                  | An index of a local variable in the local variable stack.                                                      |
+| `index`         | Constant Index                  | An index of the constant table.                                                                                |
 ***Note:** Parts of identifiers surrounded by "`"`" are to be interpreted literally.*
 
 # Executable Structure
@@ -92,20 +93,21 @@ F0
 # Type ID
 ## Description
 A `u4` representing a primitive type. The operands of these types go after any `type-flags`.
+If there are any operands, they will come immediately after the `type-flags`.
 ## Table
-| Type          | Identifier | Operands            |
-|---------------|------------|---------------------|
-| `i8`          | `0`        | `N/A`               |
-| `i16`         | `1`        | `N/A`               |
-| `i32`         | `2`        | `N/A`               |
-| `i64`         | `3`        | `N/A`               |
-| `f32`         | `4`        | `N/A`               |
-| `f64`         | `5`        | `N/A`               |
-| `object`      | `6`        | `N/A`               |
-| `function`    | `7`        | `[u8]` (`fn-ref`)   |
-| `array`       | `8`        | `u8` (`type-flags`) |
-| `dyn`         | `9`        | `N/A`               |
-| `void` / `()` | `F`        | `N/A`               |
+| Type          | Identifier | Operands              |
+|---------------|------------|-----------------------|
+| `i8`          | `0`        | `N/A`                 |
+| `i16`         | `1`        | `N/A`                 |
+| `i32`         | `2`        | `N/A`                 |
+| `i64`         | `3`        | `N/A`                 |
+| `f32`         | `4`        | `N/A`                 |
+| `f64`         | `5`        | `N/A`                 |
+| `object`      | `6`        | `N/A`                 |
+| `function`    | `7`        | `imm8` (`index`)      |
+| `array`       | `8`        | `imm8` (`type-flags`) |
+| `dyn`         | `9`        | `N/A`                 |
+| `void` / `()` | `F`        | `N/A`                 |
 
 # Type Modifier
 ## Description
@@ -141,7 +143,7 @@ There may only be up to 256 opcodes. This is because the VM represents every opc
 | `pop`       | `N/A`                                                    | ← `any`          | Store value in local variable stack.                              | `11`   |
 |             |                                                          | ⇒ `any`          |                                                                   |        |
 | `cast`      | `imm8` (`type-flags`) *from*, `imm8` (`type-flags`) *to* |                  | Casts a value from type `A` to type `B`.                          | `14`   |
-| `call`      | `u16` (`local`) [`fn-ref`]                               |                  | Calls a function.                                                 | `18`   |
+| `call`      | `imm16` (`index`) [`fn-ref`]                             |                  | Calls a function.                                                 | `18`   |
 | `ret`       | `N/A`                                                    |                  | Returns from a function.                                          | `1A`   |
 | `vret`      | `imm8` (`type-flags`)                                    |                  | Returns from a function, pushing a value onto the caller's stack. | `1B`   |
-| `ldc`       | `imm16` *index*                                          |                  | Pushes a constant to the stack.                                   | `1C`   |
+| `ldc`       | `imm16` (`index`)                                        |                  | Pushes a constant to the stack.                                   | `1C`   |
