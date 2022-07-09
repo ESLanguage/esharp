@@ -73,6 +73,7 @@ If the first 8 bytes of the first function definition are `DEADCAFEBABEDEAD`, th
 | Name        | Type & Value                | Description                             |
 |-------------|-----------------------------|-----------------------------------------|
 | Name        | `imm16` (`index`) [`fn-id`] | The fully-qualified name of the method. |
+| Return Type | `type-flags`                | The function's return type.             |
 | Args Length | `imm16`                     | The number of arguments.                |
 | Args        | `[type-flags]`              | An array of arguments.                  |
 | Code Length | `imm64`                     | The length of the code.                 |
