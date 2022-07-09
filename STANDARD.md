@@ -42,7 +42,6 @@ The constant table holds constant values.<br>
 ### Constant
 | Name    | Type & Value   | Description                                 |
 |---------|----------------|---------------------------------------------|
-| Index   | `u16`          | The index at which the constant is defined. |
 | Type    | `type-flags`   | The type of constant to define.             |
 | Length  | `u32`          | The constant value's length.                |
 | Value   | N/A            | The constant value.                         |
