@@ -37,7 +37,8 @@ Each offset is a `u32` that describes the offset at which specific data is.
 | `<reserved>`   |
 ## Constant Table
 ### Description
-The constant table holds constant values.
+The constant table holds constant values.<br>
+***Note**: the `<end>` value of the last constant in the constant table is `F00F`.*
 ### Constant
 | Name    | Type & Value   | Description                                 |
 |---------|----------------|---------------------------------------------|
