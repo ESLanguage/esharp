@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.8.0-alpha.1`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.8.0-alpha.2`</sub></sup></sup>
 
 # Definitions
 | Identifier      | Name                            | Description                                                                                                  |
@@ -11,7 +11,6 @@
 | `type-id`       | [Type ID](#type-id)             | A `u4` representing a primitive type.                                                                        |
 | `type-modifier` | [Type Modifier](#type-modifier) | A `u4` representing a [Type Modifier](#type-modifier).                                                       |
 | `type-flags`    | Type Flags                      | A `u8` representing a [Type ID](#type-id) (first 4 bits) and a [Type Modifier](#type-modifier) (last 4 bits) |
-| `fn-ref`        | Function Reference              | A `usize` referencing a function.                                                                            |
 | `fn-id`         | Function Identifier             | A UTF-8 string representing a function's identifier terminated by "`;`".                                     |
 | `imm<n>`        | Immediate `<n>`                 | An immediate byte or string of bytes represented as a bytecode operand.                                      |
 | `"<end>"`       | End                             | The end of a file, byte, function return type, etc. Any data after this is considered to be undefined.       |
@@ -71,7 +70,7 @@ foo.Bar#bar;
 ```
 *Function*
 ```
-foo.baz;
+foo.#baz;
 ```
 #### Parameters
 An array of `type-flags` terminated by `FF`.
@@ -142,8 +141,7 @@ There may only be up to 256 opcodes. This is because the VM represents every opc
 | `pop`       | `N/A`                                                    | ← `any`          | Store value in local variable stack.                              | `11`   |
 |             |                                                          | ⇒ `any`          |                                                                   |        |
 | `cast`      | `imm8` (`type-flags`) *from*, `imm8` (`type-flags`) *to* |                  | Casts a value from type `A` to type `B`.                          | `14`   |
-| `call`      | `usize` (`fn-ref`)                                       |                  | Calls a function.                                                 | `18`   |
-| `call`      | `[imm8]` (`fn-id`)                                       |                  | Calls a function.                                                 | `19`   |
+| `call`      | `u16` (`local`) [`fn-ref`]                               |                  | Calls a function.                                                 | `18`   |
 | `ret`       | `N/A`                                                    |                  | Returns from a function.                                          | `1A`   |
 | `vret`      | `imm8` (`type-flags`)                                    |                  | Returns from a function, pushing a value onto the caller's stack. | `1B`   |
 | `ldc`       | `imm16` *index*                                          |                  | Pushes a constant to the stack.                                   | `1C`   |
