@@ -54,7 +54,7 @@ The class table holds class defenitions. The `<end>` value of the last class is 
 The first bytes in the class definition are the identifier. A fully qualified identifier consists of a string of UTF-8 characters starting with the package identifier seperated by a `.`, where the bytes, starting from the last byte and ending before the first `.`, are the class name, and the rest of the bytes, seperated by a `.`, are the package qualifiers.
 ##### Example
 ```
-foo.Bar;
+foo.Bar
 ```
 ### Class
 | Name       | Type & Value                   | Description                                                                                  |
