@@ -1,4 +1,4 @@
-# E# Bytecode Standard<sup><sup><sub>`0.9.0-alpha.0`</sub></sup></sup>
+# E# Bytecode Standard<sup><sup><sub>`0.9.1-alpha.0`</sub></sup></sup>
 
 # Definitions
 | Identifier      | Name                            | Description                                                                                                    |
@@ -40,15 +40,15 @@ Each offset is a `u32` that describes the offset at which specific data is.
 The constant table holds constant values.<br>
 ***Note**: the `<end>` value of the last constant in the constant table is `F00F`.*
 ### Constant
-| Name    | Type & Value   | Description                                 |
-|---------|----------------|---------------------------------------------|
-| Type    | `type-flags`   | The type of constant to define.             |
-| Length  | `u32`          | The constant value's length.                |
-| Value   | N/A            | The constant value.                         |
-| `<end>` | `u16` `0xFFFF` | The end of the constant definition.         |
+| Name    | Type & Value     | Description                                 |
+|---------|------------------|---------------------------------------------|
+| Type    | `type-flags`     | The type of constant to define.             |
+| Length  | `u32`            | The constant value's length.                |
+| Value   | N/A              | The constant value.                         |
+| `<end>` | `imm16` `0xFFFF` | The end of the constant definition.         |
 ## Class Table
 ### Description
-The class table holds class defenitions. The last 4 bytes of the table are `DE AD CA FE`.
+The class table holds class defenitions. The `<end>` value of the last class is `0xDEAD`.
 ### Identifier
 ##### Description
 The first bytes in the class definition are the identifier. A fully qualified identifier consists of a string of UTF-8 characters starting with the package identifier seperated by a `.`, where the bytes, starting from the last byte and ending before the first `.`, are the class name, and the rest of the bytes, seperated by a `.`, are the package qualifiers.
@@ -63,9 +63,10 @@ foo.Bar;
 | Super Name | `imm16` (`index`) [`class-id`] | The fully-qualified name of the supertype. (This would be set to Name if extending nothing.) |
 | Fields     | N/A                            | [Field Table](#field-table)                                                                  |
 | Methods    | N/A                            | [Function Table](#function-table)                                                            |
+| `<end>`    | `imm16` `0xFFFF`               |                                                                                              |
 ## Function Table
 ### Description
-The function table holds function definitions. The last 4 bytes of the table are `DE AD C0 DE`. Each function in the table starts with `C0 DE` (2 bytes).
+The function table holds function definitions. The `<end>` value of the last function is `0xCAFE`.
 ### Function
 | Name        | Type & Value                | Description                             |
 |-------------|-----------------------------|-----------------------------------------|
@@ -74,6 +75,7 @@ The function table holds function definitions. The last 4 bytes of the table are
 | Args        | `[type-flags]`              | An array of arguments.                  |
 | Code Length | `imm64`                     | The length of the code.                 |
 | Code        | `[imm8]`                    | The bytecode.                           |
+| `<end>`     | `imm16` `0xFFFF`            | The end of the function definition.     |
 
 # Field Table
 ## Description
